@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #070a12;
+  }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color: #e2e8f0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+}
+
+.font-serif-biblical {
+  font-family: 'Cinzel', Georgia, serif;
+}
+
+/* Custom scrollbar and hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

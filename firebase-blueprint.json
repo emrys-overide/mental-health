@@ -1,0 +1,84 @@
+{
+  "entities": {
+    "users": {
+      "title": "User Profile",
+      "description": "User profile information and recovery account settings",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "photoURL": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "streak_data": {
+      "title": "Recovery Streak Data",
+      "description": "User clean days, streaks, milestones, and daily check-in history",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "currentStreak": { "type": "number" },
+        "longestStreak": { "type": "number" },
+        "totalVictories": { "type": "number" },
+        "startDate": { "type": "string", "maxLength": 64 },
+        "lastLogDate": { "type": "string", "maxLength": 32 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "currentStreak", "longestStreak", "totalVictories"]
+    },
+    "urge_logs": {
+      "title": "Urge Log Record",
+      "description": "Craving intensity log and 60-second pause outcomes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "timestamp": { "type": "number" },
+        "intensity": { "type": "number" },
+        "dateStr": { "type": "string", "maxLength": 32 },
+        "timeStr": { "type": "string", "maxLength": 32 },
+        "need": { "type": "string", "maxLength": 128 },
+        "action": { "type": "string", "maxLength": 500 },
+        "completed60s": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "timestamp", "intensity", "completed60s"]
+    },
+    "journal_entries": {
+      "title": "Daily Devotion & Victory Journal",
+      "description": "User personal reflection, scriptures, and gratitude logs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "dateKey": { "type": "string", "maxLength": 32 },
+        "note": { "type": "string", "maxLength": 2000 },
+        "gratitude": { "type": "string", "maxLength": 1000 },
+        "scriptureRef": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "dateKey", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "User profile documents keyed by Firebase Auth UID"
+    },
+    "/users/{userId}/streak/data": {
+      "schema": "streak_data",
+      "description": "User streak statistics and milestones"
+    },
+    "/users/{userId}/urge_logs/{urgeLogId}": {
+      "schema": "urge_logs",
+      "description": "User craving records and pause effectiveness ratings"
+    },
+    "/users/{userId}/journal_entries/{entryId}": {
+      "schema": "journal_entries",
+      "description": "User private victory reflections and gratitude notes"
+    }
+  }
+}

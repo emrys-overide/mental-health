@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global catch-all default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Health / connection test rule
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // User profile document
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidId(userId)
+        && incoming().uid == userId
+        && incoming().email is string && incoming().email.size() <= 256;
+      allow update: if isOwner(userId) && isValidId(userId)
+        && incoming().uid == existing().uid
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'updatedAt', 'lastLoginAt']);
+      allow delete: if isOwner(userId);
+
+      // Streak data sub-document
+      match /streak/{streakDocId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(userId)
+          && incoming().userId == userId
+          && incoming().currentStreak is number && incoming().currentStreak >= 0
+          && incoming().longestStreak is number && incoming().longestStreak >= 0
+          && incoming().totalVictories is number && incoming().totalVictories >= 0;
+        allow delete: if isOwner(userId);
+      }
+
+      // Urge Logs subcollection
+      match /urge_logs/{urgeLogId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(urgeLogId)
+          && incoming().userId == userId
+          && incoming().id == urgeLogId
+          && incoming().intensity is number
+          && incoming().intensity >= 1 && incoming().intensity <= 10
+          && incoming().completed60s is bool;
+        allow update: if isOwner(userId) && isValidId(urgeLogId)
+          && incoming().userId == existing().userId
+          && incoming().id == existing().id
+          && incoming().diff(existing()).affectedKeys().hasOnly(['intensity', 'completed60s', 'updatedAt', 'need', 'action', 'dateStr', 'timeStr']);
+        allow delete: if isOwner(userId);
+      }
+
+      // Daily Journal Entries subcollection
+      match /journal_entries/{entryId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(entryId)
+          && incoming().userId == userId
+          && incoming().id == entryId
+          && incoming().dateKey is string && incoming().dateKey.size() <= 32;
+        allow update: if isOwner(userId) && isValidId(entryId)
+          && incoming().userId == existing().userId
+          && incoming().id == existing().id;
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

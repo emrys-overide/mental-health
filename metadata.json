@@ -1,0 +1,8 @@
+{
+  "name": "Bible Recovery & Mind Renewal",
+  "description": "An interactive, science-informed and Scripture-grounded assistant for habit recovery, featuring real-time Gemini Live voice coaching, Google Sign-in with Firebase Cloud Firestore sync, bite-sized video insights, prefrontal mind games, and 60-second urge interruption.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
