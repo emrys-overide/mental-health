@@ -48,7 +48,15 @@ async function startServer() {
   }
 
   wss.on("connection", async (clientWs: WebSocket) => {
+    // Production voice is disabled until the handshake verifies a Firebase ID token.
+    // This prevents anonymous callers from opening paid model sessions or sending sensitive audio.
+    if (process.env.NODE_ENV === "production") {
+      clientWs.close(1008, "Voice requires verified sign-in");
+      return;
+    }
     console.log("[Live API] Client connected for voice conversation");
+    const sessionTimeout = setTimeout(() => clientWs.close(1000, "Voice session time limit"), 5 * 60 * 1000);
+    clientWs.once("close", () => clearTimeout(sessionTimeout));
     let session: any = null;
 
     try {
@@ -63,12 +71,12 @@ async function startServer() {
           },
           systemInstruction: `You are the RenewMind Voice Companion—a compassionate, faith-grounded, and neuroscience-informed recovery partner.
 You speak with warmth, peaceful presence, and understanding.
-You are grounded in Scripture (Romans 12:2 on renewing the mind, 1 Corinthians 10:13 on God providing a way out, Philippians 4:8 on what is noble, Psalm 46:1 on God being an ever-present help) and modern neuroplasticity (urges peak and fade within 90 seconds, dopamine anticipation vs true peace, prefrontal inhibition).
+You are grounded in Scripture (Romans 12:2 on renewing the mind, 1 Corinthians 10:13 on God providing a way out, Philippians 4:8 on what is noble, Psalm 46:1 on God being an ever-present help) and modern neuroplasticity (coping strategies such as pausing, breathing, and seeking support).
 Guidelines:
 - Keep your spoken responses concise (2 to 4 sentences), conversational, and comforting, allowing natural back-and-forth voice dialogue.
 - If the user is facing a craving or distress, calmly guide them to breathe, pause, and name what their soul truly needs (rest, safety, connection, peace).
 - If the user asks for a prayer, offer a short, uplifting prayer of strength and grace.
-- Never judge, shame, or lecture. Offer unconditional encouragement and celebrate small victories.`,
+- Never judge, shame, or lecture. Offer unconditional encouragement and celebrate small victories.\n- Do not diagnose or claim to provide treatment. If the user expresses immediate danger or intent to harm themselves or someone else, encourage them to contact local emergency services or a trusted person now.`,
           outputAudioTranscription: {},
           inputAudioTranscription: {},
         },
